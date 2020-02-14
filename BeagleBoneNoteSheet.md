@@ -15,9 +15,10 @@ nameserver 8.8.4.4
 2. `ifconfig -a`
 2. `iptables --table nat --append POSTROUTING --out-interface <wireless-interface> -j MASQUERADE`
 3. `iptables --append FORWARD --in-interface <usb-etherent-interface> -j ACCEPT`
+
 source:  https://elementztechblog.wordpress.com/2014/12/22/sharing-internet-using-network-over-usb-in-beaglebone-black/
 
-# Get Agnstrum Image and build and sd bootable card
+# Get Agnstrum Image and clone it to sdcard
 1. `wget https://s3.amazonaws.com/angstrom/demo/beaglebone/Angstrom-Cloud9-IDE-GNOME-eglibc-ipk-v2012.12-beaglebone-2013.06.20.img.xz`
 2. `tar xvf Angstrom-Cloud9-IDE-GNOME-eglibc-ipk-v2012.12-beaglebone-2013.06.20.img.xz`
 3. `dd if=Angstrom-Cloud9-IDE-GNOME-eglibc-ipk-v2012.12-beaglebone-2013.06.20.img of=/dev/mmcblk0` 
@@ -48,7 +49,7 @@ RAMDISK or INITRAMFS| 0x88080000
  
 # Boot BeagleBone From Serial Port:
 1. Disconnect sd card and micro usb and power board with adapter
-2. While board connected with uart run minicom
+2. While board connected over uart0 to PC run minicom
 3. Plug power when pressing SD button and release it after power up
 4. When you see `C` press `ctrl+a` and then `s` and select xmodem
 5. Choose `SPL` pre-built image and hit enter
@@ -67,7 +68,7 @@ RAMDISK or INITRAMFS| 0x88080000
 
 # Get Bootlin uclibc toolchain and install it
 1. `wget https://toolchains.bootlin.com/downloads/releases/toolchains/armv7-eabihf/tarballs/armv7-eabihf--uclibc--stable-2018.11-1.tar.bz2`
-2. `tar xf armv7-eabihf--uclibc--stable-2018.11-1.tar.bz2 -C ~/x-tools
+2. `tar xf armv7-eabihf--uclibc--stable-2018.11-1.tar.bz2 -C ~/x-tools`
 
 # Install Ubuntu toolchain:
 1. `sudo apt install gcc-arm-linux-gnueabihf`
@@ -264,7 +265,7 @@ arm-linux-ldd rootfs/bin/busybox
 # Copy toolchain libs to rootfs libs
 1. Go to rootfs directory
 2. `sudo apt install gcc-arm-linux-gnueabihf`
-3. `cp -a `arm-linux-gnueabihf-gcc --print-sysroot`/lib/* lib`
+3. `cp -a ``arm-linux-gnueabihf-gcc --print-sysroot``/lib/* lib`
 
 # Get zlib source and build and deploy on target with an example program
 1. `wget https://www.zlib.net/zlib-1.2.11.tar.gz`
@@ -304,14 +305,14 @@ arm-linux-gcc example.c $(pkg-config --cflags --libs zlib)
 6. `make install DESTDIR=../build`
 
 # print shared object dependencies
-export PATH=~/x-tools/armv7-eabihf--uclibc--stable-2018.11-1/bin/:$PATH
-arm-linux-ldd <program>
+`export PATH=~/x-tools/armv7-eabihf--uclibc--stable-2018.11-1/bin/:$PATH`
+`arm-linux-ldd <program>`
 # Displays the contents of the file's dynamic section, if it has one.
-arm-linux-readelf -d <program>
+`arm-linux-readelf -d <program>`
 # Display the target libraries directory
-arm-linux-gcc --print-sysroots
+`arm-linux-gcc --print-sysroots`
 # Discard symbols from object files.
-arm-linux-strip <program>
+`arm-linux-strip <program>`
 
 > Written with H.Assaran
 
