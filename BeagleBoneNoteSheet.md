@@ -123,11 +123,10 @@ uenvcmd=run netboot
 
 ### Host machine:
 1. `sudo apt install tftpd-hpa`
-2. `sudo mkdir /var/lib/tftpboot`
-3. `sudo chown tftp:tftp /var/lib/tftpboot`
-4. `sudo apt install nfs-kernel-server`
-5. `sudo nano /etc/exports`
-6. add this line
+2. `sudo chown tftp:tftp /var/lib/tftpboot`
+3. `sudo apt install nfs-kernel-server`
+4. `sudo nano /etc/exports`
+5. add this line
   `/srv/nfs/bbb *(rw,sync,no_root_squash,no_subtree_check)`
 7. `sudo mkdir -p /srv/nfs/bbb`
 8. copy root file system built with busy box without parent directory into `/srv/nfs/bbb` 
@@ -266,7 +265,8 @@ arm-linux-ldd rootfs/bin/busybox
 ## Copy toolchain libs to rootfs libs
 1. Go to rootfs directory
 2. `sudo apt install gcc-arm-linux-gnueabihf`
-3. `cp -a ``arm-linux-gnueabihf-gcc --print-sysroot``/lib/* lib`
+3. `arm-linux-gnueabihf-gcc --print-sysroot`
+3. `cp -a /usr/arm-linux-gnueabihf/lib/* lib`
 
 ## Get zlib source and build and deploy on target with an example program
 1. `wget https://www.zlib.net/zlib-1.2.11.tar.gz`
@@ -298,12 +298,35 @@ arm-linux-gcc example.c $(pkg-config --cflags --libs zlib)
 15. run it on board with command `./a.out`
 
 ## Get dropbear source and build and deploy on the target:
+### Host machine:
 1. `wget https://matt.ucc.asn.au/dropbear/releases/dropbear-2019.78.tar.bz2`
 2. `tar xf dropbear-2019.78.tar.bz2`
 3. `cd dropbear-2019.78`
 4. `./configure --host=arm-linux-gnueabihf --with-zlib=../build/usr --prefix=/usr`
 5. `make -j4`
 6. `make install DESTDIR=../build`
+7. `cd ..`
+8. `sudo cp -P build/usr/sbin/dropbear rootfs/usr/sbin/`
+9. `sudo cp -P build/usr/bin/d* rootfs/usr/bin/`
+10. `mkdir -p rootfs/etc/dropbear`
+### BeagleBone linux:
+1. `vi /etc/passwd` and enter below content into it:
+```
+root:x:0:0:root:/root:/bin/sh 
+```
+2. `passwd` and enter a password
+3. `vi /etc/init.d/rcS` and add below contects into it:
+```
+mkdir /dev/pts
+mount -t devpts /dev/pts /dev/pts
+```
+4. `/usr/sbin/dropbear -FER`
+or if you sure about functionality you can add it to `etc/init.d/rcS` like below:
+```
+/usr/sbin/dropbear -ER
+```
+
+source for one problem according work: https://lists.ucc.gu.uwa.edu.au/pipermail/dropbear/2007q2/000583.html
 
 ## Displays shared object dependencies
 `export PATH=~/x-tools/armv7-eabihf--uclibc--stable-2018.11-1/bin/:$PATH`
@@ -314,6 +337,9 @@ arm-linux-gcc example.c $(pkg-config --cflags --libs zlib)
 `arm-linux-gcc --print-sysroots`
 ## Discard symbols from object files.
 `arm-linux-strip <program>`
+
+
+
 
 > Written with H.Assaran
 
