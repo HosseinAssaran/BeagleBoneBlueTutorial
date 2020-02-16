@@ -1,6 +1,12 @@
 # Beagle Bone Blue Note Sheet
 This note sheet includes my expreinces in working with **Beagle Bone Blue**. I hope it helps you. You can add issue for problems and pull requests are wellcome.
 
+## How to mount distro image files in your host machine:
+1. enter `sudo fdisk -l <name.img>`
+2. multiply **sector size** by **start of partiion** you need to mount
+3. then enter below command by importing result value from previous section
+   `sudo mount -o loop,offset=<result-value>,ro <name.img> /mnt`
+
 ## Connecting BeagleBone To Internet through usb-device connected to host machine:
 
 ### BeagleBone Settings:
@@ -60,12 +66,6 @@ RAMDISK or INITRAMFS| 0x88080000
 9. enter `loadx 0x880800000` and Repeat 4 and 5 steps but for `initramfs` 
 10.enter `setenv bootargs console=ttyO0,115200 root=/dev/ram0 rw initrd=0x88080000`
 11.enter `bootm 0x82000000 0x88080000 0x88000000`
-
-## How to mount an img file in linux:
-1. enter `sudo fdisk -l <name.img>`
-2. multiply **sector size** by **start of partiion** you need to mount
-3. then enter below command by importing result value from previous section
-   `mount -o loop,offset=<result-value>,ro <name.img> /mnt
 
 ## Get Bootlin uclibc toolchain and install it
 1. `wget https://toolchains.bootlin.com/downloads/releases/toolchains/armv7-eabihf/tarballs/armv7-eabihf--uclibc--stable-2018.11-1.tar.bz2`
