@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# This script at now just work with ubuntu default toolchain selection 2
-# It has and issue with armv7-eabihf--uclibc--stable-2018.11-1 toolchain that I don't find yet.
-# While running maybe it ask you for password or yes/no question for installing some packages.
+# This script download zlib and dropbear source code, then configure and build them.
+# This script at now just work with ubuntu toolchain "selection 2"
+# Then Enter "2" when you asked to select the toolchain.
+# It has and issue with "armv7-eabihf--uclibc--stable-2018.11-1 toolchain" that I don't find yet.
+# While running maybe it asks you for password to install toolchain.
 
 echo Script to download and Install zlib and dropbear
 mkdir -p /tmp/test
@@ -37,7 +39,7 @@ elif [ $toolchain -eq '2' ]; then
     if test -f "$FILE"; then
        echo "$FILE exist"
     else
-       sudo apt install gcc-arm-linux-gnueabihf
+       sudo apt -y install gcc-arm-linux-gnueabihf
     fi
 else
     echo not select a correct toolchain
