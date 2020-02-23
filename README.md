@@ -5,5 +5,9 @@ Also there are some key things that is not included in the documents and guides 
 So I decided to share my command sheet lines and scripts that I write just for tutorial use.
 If you want to learn embedded linux over beagle bone it can be useful to read command and run them.
 As far as this commands are just for tutorial I recommand you to read them carefully and understand their working before runnig.
+
 If you have any question I am open in my email:
 Hossein.assaran@gmail.com
+
+I documented every things I learned in [BeagleBoneNoteSheet.md]
+
