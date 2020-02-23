@@ -106,7 +106,7 @@ RAMDISK or INITRAMFS| 0x88080000
 Copy files to sdcard to boot and run linux from sdcard
 1. Build two partiion on sdcard one for boot with fat filesystem and boot flag enabled and another with ext2.
 Then Format both and name first partition as **BOOT** and second as **ROOTFS**.
-You can use command below just in line one replace **$MYDSIK** with your real device label in `/dev`:
+You can use commands below. Assign **$MYDSIK** with your real device file path in `/dev`:
 ```
 MYDISK=/dev/mmcblk1
 echo -e "o\nn\np\n1\n\n+200M\na\n1\nt\nc\nn\np\n2\n\n\nw\n" | fdisk $MYDISK ; fdisk -l $MYDISK
@@ -129,6 +129,16 @@ sudo mount ${MYDISK}p2 /mnt
 6. make `boot` and `dev` directory in ROOTFS partiotion
 7. copy kernel built image from `arch/arm/boot/uImage` into `boot` directory of ROOTFS partition
 8. copy device tree file from `arch/arm/boot/dts/am335x-boneblue.dtb` into `boot` directory of ROOTFS partition
+9. make `proc` dirctory in the rootfs directory
+10. make `etc/init.d` directory in the rootfs directory of beaglebone
+11. go rootfs directory and run `sudo nano etc/init.d/rcS` and add below lines
+```
+#!/bin/sh
+
+echo "Mounting proc"
+mount -t proc /proc /proc
+```
+12.Adding inittab is not nessecary. if you want to add inititab into /etc you can find it in examples/inittab in busybox source folder
 
 ## Build uEnv.txt to automate boot from sdcard 
 copy these contents to a file named uEnv.txt and copy it into boot partition alongside u-boot.img and MLO
@@ -138,6 +148,7 @@ netargs=setenv bootargs console=ttyO0,115200n8 root=/dev/mmcblk0p2 rw rootfstype
 netboot=echo Booting from microSD ...; setenv autoload no ; load mmc 0:2 ${loadaddr} /boot/uImage ; load mmc 0:2 ${fdtaddr} /boot/am335x-boneblue.dtb ; run netargs ; bootm ${loadaddr} - ${fdtaddr}
 uenvcmd=run netboot
 ```
+
 ## Boot kernel from network with ethernet over usb-device of beaglebone 
 
 ### Host machine:
@@ -227,25 +238,13 @@ netargs=setenv bootargs console=${console} g_ether.dev_addr=${usbnet_devaddr} g_
 uenvcmd=setenv autoload no; run loadtftp; run netargs; bootm ${loadaddr} - ${fdtaddr}
 ```
 
-## Location of `init` program in order:
+##  Look up locations of `init` program in order:
 Kernel after booting run **init** program as first program ans gives pid 1 to it. Kernel by default search below paths in order to find the **init** program.
 1. `init=<location of init  program>` in u-boot 
 2. /sbin/init
 3. /etc/init
 4. /bin/init
 5. /bin/sh
-
-## Add some initials to rootfs
-1. make `/proc` dirctory in the rootfs directory of beaglebone
-2. make `/etc/init.d` directory in the rootfs directory of beaglebone
-3. `sudo nano /etc/init.d/rcS` and add below lines
-```
-#!/bin/sh
-
-echo "Mounting proc"
-mount -t proc /proc /proc
-```
-4.Adding inittab is not nessecary. if you want to add inititab into /etc you can find it in examples/inittab in busybox source folder
 
 ## Enable usb device over ethernet driver manually
 1. `modprobe g_ether`
