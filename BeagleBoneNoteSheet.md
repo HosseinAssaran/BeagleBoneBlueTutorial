@@ -75,11 +75,12 @@ RAMDISK or INITRAMFS| 0x88080000
 1. `sudo apt install gcc-arm-linux-gnueabihf`
 
 ## Compile U-boot With uclibc bootlin toolchain:
-1. `export PATH=~/x-tools/armv7-eabihf--uclibc--stable-2018.11-1/bin/:$PATH`
-2. `make ARCH=arm CROSS_COMPILE=arm-linux- distclean`
-3. `make ARCH=arm CROSS_COMPILE=arm-linux- am335x_evm_config`
-4. `make ARCH=arm CROSS_COMPILE=arm-linux- menuconfig`
-5. `make ARCH=arm CROSS_COMPILE=arm-linux- -j4`
+1. `sudo apt install flex`
+2. `export PATH=~/x-tools/armv7-eabihf--uclibc--stable-2018.11-1/bin/:$PATH`
+3. `make ARCH=arm CROSS_COMPILE=arm-linux- distclean`
+4. `make ARCH=arm CROSS_COMPILE=arm-linux- am335x_evm_config`
+5. `make ARCH=arm CROSS_COMPILE=arm-linux- menuconfig`
+6. `make ARCH=arm CROSS_COMPILE=arm-linux- -j4`
 
 ## Compile and install busybox with Ubuntu toolchain:
 1. `wget https://www.busybox.net/downloads/busybox-1.31.1.tar.bz2`
@@ -103,13 +104,31 @@ RAMDISK or INITRAMFS| 0x88080000
 
 ## Build a linux bootable sdcard:
 Copy files to sdcard to boot and run linux from sdcard
-1. Build two partiion on sdcard one for boot with fat filesystem and boot flag enabled and another with ext3.
-2. Name first partition as BOOT and second as ROOTFS.
-3. copy `MLO` and `u-boot.img` into BOOT partition
-4. copy root file system from where installed by busybox into ROOTFS partion
-5. make `boot` and `dev` directory in ROOTFS partiotion
-6. copy kernel built image from `arch/arm/boot/uImage` into `boot` directory of ROOTFS partition
-7. copy device tree file from `arch/arm/boot/dts/am335x-boneblue.dtb` into `boot` directory of ROOTFS partition
+1. Build two partiion on sdcard one for boot with fat filesystem and boot flag enabled and another with ext2.
+Then Format both and name first partition as **BOOT** and second as **ROOTFS**.
+You can use command below just in line one replace **$MYDSIK** with your real device label in `/dev`:
+```
+MYDISK=/dev/mmcblk1
+echo -e "o\nn\np\n1\n\n+200M\na\n1\nt\nc\nn\np\n2\n\n\nw\n" | fdisk $MYDISK ; fdisk -l $MYDISK
+sudo mkfs.vfat ${MYDISK}p1
+sudo mkfs.ext2 ${MYDISK}p2
+sudo mlabel -i ${MYDISK}p1 ::BOOT
+sudo e2label ${MYDISK}p2 ROOTFS
+```
+2. Mount the boot partition on `/mnt`:
+```
+sudo mount ${MYDISK}p1 /mnt
+```
+3. copy `MLO` and `u-boot.img` into BOOT partition mounted.
+4. umount the boot partition and mount rootfs partition on `/mnt`:
+```
+sudo umount ${MYDISK}p1
+sudo mount ${MYDISK}p2 /mnt
+```
+5. copy root file system from where installed by busybox into ROOTFS partion
+6. make `boot` and `dev` directory in ROOTFS partiotion
+7. copy kernel built image from `arch/arm/boot/uImage` into `boot` directory of ROOTFS partition
+8. copy device tree file from `arch/arm/boot/dts/am335x-boneblue.dtb` into `boot` directory of ROOTFS partition
 
 ## Build uEnv.txt to automate boot from sdcard 
 copy these contents to a file named uEnv.txt and copy it into boot partition alongside u-boot.img and MLO
@@ -337,6 +356,42 @@ source for one problem according work: https://lists.ucc.gu.uwa.edu.au/pipermail
 `arm-linux-gcc --print-sysroots`
 ## Discard symbols from object files.
 `arm-linux-strip <program>`
+
+## Available RAM for image download
+1.`bdinfo` command in u-boot.
+2. Safely availabls space ranges from `-> start` address to `sp start` - `0x100000(stack size)` address
+
+source: 
+http://software-dl.ti.com/processor-sdk-linux/esd/docs/latest/linux/Foundational_Components_U-Boot.html#available-ram-for-image-download
+
+##Problem in running `make menuconfig`
+It needs **gcc** , **ncurese** and **bison** just run `sudo apt install gcc libncurses5-dev bison` and run `make menuconfig` again.
+
+
+## How to boot from eMMC instead of sd card
+
+### Host Machine
+Over host machine you should compile again u-boot with `CONFIG_ENV_FAT_DEVICE_AND_PART=1:1` to save env on your eMMC.
+For that I build a new config with this config modified that you can apply to u-boot project.
+1. `export PATH=~/x-tools/armv7-eabihf--uclibc--stable-2018.11-1/bin/:$PATH`
+2. `git apply boot_from_emmc.patch` 
+3. `make ARCH=arm CROSS_COMPILE=arm-linux- distclean`
+4. `make ARCH=arm CROSS_COMPILE=arm-linux- am335x_evm_env_store_on_emmc_config`
+5. `make ARCH=arm CROSS_COMPILE=arm-linux- -j4`
+6. copy created **MLO** and **u-boot.img** and **uEnv.txt** into boot partition of sdcard that you created before.
+7. copy `flash_bootable_mmc.sh` into your rootfs.
+
+### Target Machine
+1. Insert SD card and press **SD** button to boot the board with sdcard.
+2. After booting the kernel from sd card run command below to make eMMC bootable:
+`./flash_bootable_mmc.sh /dev/mmcblk0 /dev/mmcblk1`
+3. Reboot the board and press any key to stop u-boot from automic booting the kernel.
+4. In u-boot shell enter below commands:
+```
+setenv mmcdev 1
+saveenv`
+```
+6. Remove sd card, reset the board and enjoy booting over eMMC 
 
 
 
