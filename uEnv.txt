@@ -1,0 +1,22 @@
+console=ttyO0,115200n8
+ipaddr=192.168.9.2
+serverip=192.168.9.1
+ethact=usb_ether
+usbnet_devaddr=f8:dc:7a:00:00:02
+usbnet_hostaddr=f8:dc:7a:00:00:01
+loadbootenv_network=tftpboot ${loadaddr} ${serverip}:uEnv.txt
+get_tftp_uEnv=tftpboot ${loadaddr} ${serverip}:uEnv.txt; fatwrite mmc 0:1 ${loadaddr} uEnv.txt ${filesize}
+get_tftp_spl=tftpboot ${loadaddr} ${serverip}:MLO; fatwrite mmc 0:1 ${loadaddr} MLO ${filesize}
+get_tftp_uboot=tftpboot ${loadaddr} ${serverip}:u-boot.img; fatwrite mmc 0:1 ${loadaddr} u-boot.img ${filesize}
+rootpath=/srv/nfs/bbb,nolock,wsize=1024,rsize=1024,nfsvers=3 rootwait rootdelay=3
+loadtftp=echo Booting from network ...;tftpboot ${loadaddr} ${serverip}:uImage; tftpboot ${fdtaddr} ${serverip}:am335x-boneblue.dtb
+netargs=setenv bootargs console=${console} g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} root=/dev/nfs rw nfsroot=${serverip}:${rootpath} ip=${ipaddr}:::::usb0
+uenvcmd_net=echo Booting from Network ...;setenv autoload no; run loadtftp; run netargs; bootm ${loadaddr} - ${fdtaddr}
+sdargs=setenv bootargs console=${console} root=/dev/mmcblk0p2 rw rootfstype=ext2 rootwait debug earlyprintk mem=512M
+loadsd=load mmc 0:2 ${loadaddr} /boot/uImage ; load mmc 0:2 ${fdtaddr} /boot/am335x-boneblue.dtb 
+uenvcmd_sd=echo Booting from microSD ...; setenv autoload no ;run loadsd; run sdargs; bootm ${loadaddr} - ${fdtaddr}
+eMMCargs=setenv bootargs console=${console} root=/dev/mmcblk1p2 rw rootfstype=ext2 rootwait debug earlyprintk mem=512M
+loadeMMC=load mmc 1:2 ${loadaddr} /boot/uImage ; load mmc 1:2 ${fdtaddr} /boot/am335x-boneblue.dtb 
+uenvcmd_eMMC=echo Booting from eMMC ...; setenv autoload no ;run loadeMMC; run eMMCargs; bootm ${loadaddr} - ${fdtaddr}
+uenvcmd=run uenvcmd_net
+
