@@ -36,8 +36,13 @@ then
 fi
 destination=$1
 echo "destination is ${destination}"
+result=$(lsblk $destination -o NAME,TYPE | grep ${destination:5} | awk '{print $2}')
+if [[ "$result" != "disk"* ]]
+then 
+    echo "This device is not disk type deive."
+    exit 1
+fi
 result=$(lsblk $destination -o NAME,HOTPLUG | grep ${destination:5} | awk '{print $2}')
-#echo "The result of checking for hot-plug device is $result"
 if [[ "$result" != "1"* ]]
 then 
     echo "This device is not hot plug and is not possible to flash it."
@@ -55,7 +60,6 @@ then
     echo "You can't flash on / mounted device"
     exit 1
 fi
-echo "Successfull"
 read -e -p "u-boot directory path:" U_BOOT_PATH
 read -e -p "kernel directory path:" KERNEL_PATH
 read -e -p "rootfs directory path:" ROOTFS_PATH
@@ -96,11 +100,11 @@ dd if=/dev/zero of=${destination} bs=1M count=108
 sync
 dd if=${destination} of=/dev/null bs=1M count=108
 sync
-echo -e "o\nn\np\n1\n\n+200M\na\n1\nt\ne\nn\np\n2\n\n\nw\n" | fdisk $destination ; fdisk -l $destination
+echo -e "o\nn\np\n1\n\n+200M\na\n1\nt\ne\nn\np\n2\n\n\nw\n" | fdisk $destination -W always ; fdisk -l $destination
 parts=($(ls ${destination}?*))
 echo "Partition 1 is ${parts[0]}"
 echo "Partition 2 is ${parts[1]}"
-mkfs.vfat -F 16 ${parts[0]}
+mkfs.vfat -F 16 ${parts[0]} 
 mkfs.ext2 ${parts[1]}
 mlabel -i ${parts[0]} ::BOOT
 e2label ${parts[1]} ROOTFS
