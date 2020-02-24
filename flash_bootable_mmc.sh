@@ -42,7 +42,7 @@ umount ${destination}p2
 dd if=/dev/zero of=${destination} bs=1M count=108
 sync
 dd if=${destination} of=/dev/null bs=1M count=108
-/mnt/destination
+sync
 echo -e "o\nn\np\n1\n\n+200M\na\n1\nt\ne\nn\np\n2\n\n\nw\n" | fdisk $destination ; fdisk -l $destination
 mkfs.vfat -F 16 ${destination}p1
 mkfs.ext2 ${destination}p2
