@@ -98,7 +98,7 @@ RAMDISK or INITRAMFS| 0x88080000
 5. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- distclean`
 6. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bb.org_defconfig`
 7. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig`
-8. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage dtbs LOADADDR=0x80008000 -j4`
+8. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage dtbs LOADADDR=0x80008000 -j4` or to build zImage do `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-`
 9. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 modules`
 10. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=<path_of_the_RFS> modules_install`
 
@@ -158,14 +158,19 @@ uenvcmd=run netboot
 4. `sudo nano /etc/exports`
 5. add this line
   `/srv/nfs/bbb *(rw,sync,no_root_squash,no_subtree_check)`
-7. `sudo mkdir -p /srv/nfs/bbb`
-8. copy root file system built with busy box without parent directory into `/srv/nfs/bbb` 
-9. `sudo exportfs -arv`
-10. `sudo service nfs-kernel-server restart`
-11. `nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.9.1/24`
-12.  Go to kernel source folder run **make menuconfig** Find the ”USB Gadget precomposed configurations” and set it to * to become static instead of module so that there is `CONFIG_USB_ETH=y` in .config. Then **make** kernel source again.
-13. copy kernel built image from `arch/arm/boot/uImage` into `/var/lib/tftpboot`
-14. copy device tree file from `arch/arm/boot/dts/am335x-boneblue.dtb` into `/var/lib/tftpboot`
+6. `sudo mkdir -p /srv/nfs/bbb`
+7. copy root file system built with busy box without parent directory into `/srv/nfs/bbb` 
+8. `sudo exportfs -arv`
+9. `sudo service nfs-kernel-server restart`
+10. `nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.9.1/24`
+11.  Go to kernel source folder run **make menuconfig** Find the ”USB Gadget precomposed configurations” and set it to * to become static instead of module so that there is `CONFIG_USB_ETH=y` in .config. Then **make** kernel source again.
+12. 
+   * If you have a **uImage** do:
+      - copy kernel built image from `arch/arm/boot/uImage` into `/var/lib/tftpboot`
+      - copy device tree file from `arch/arm/boot/dts/am335x-boneblue.dtb` into `/var/lib/tftpboot`
+   * And If you have a **zImage** do:
+      - `cat arch/arm/boot/zImage arch/arm/boot/dts/am335x-boneblue.dtb > /var/lib/tftpboot/zImage`
+
 
 ### U-boot command:
 1. `setenv ethact usb_ether`
@@ -178,6 +183,11 @@ uenvcmd=run netboot
 8. `set rootpath /srv/nfs/bbb,nolock,wsize=1024,rsize=1024,nfsvers=3 rootwait rootdelay=2`
 9. `set bootargs console=ttyO0,115200n8 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} root=/dev/nfs rw nfsroot=${serverip}:${rootpath} ip=${ipaddr}:::::usb0` 
 10. `bootm 0x82000000 - 0x88000000`
+
+You can also concatenate all of the above commands in one command and run it in u-boot. I do an example of it but this time with zImage:
+```
+setenv ipaddr 192.168.9.2;setenv serverip 192.168.9.1;setenv ethact usb_ether;setenv usbnet_devaddr f8:dc:7a:00:00:02;setenv usbnet_hostaddr f8:dc:7a:00:00:01;setenv rootpath /srv/nfs/bbb,nolock,wsize=1024,rsize=1024,nfsvers=3 rootwait rootdelay=3;setenv bootargs console=ttyO0,115200n8 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} root=/dev/nfs rw nfsroot=${serverip}:${rootpath} ip=${ipaddr}:::::usb0;tftpboot ${loadaddr} ${serverip}:zImage;bootz ${loadaddr}
+```
 
 Source:
 https://bootlin.com/blog/tftp-nfs-booting-beagle-bone-black-wireless-pocket-beagle/
