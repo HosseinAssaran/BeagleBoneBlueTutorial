@@ -1,4 +1,5 @@
 # This Script help you turn on and off 6 LEDs over BeagleBone Blue.
+# The work is done thanks to MR. Nasser Afshin and I just customize this for Beagle Bone 
 # This is upgraded version of gpiov1.sh
 
 #!/bin/sh
