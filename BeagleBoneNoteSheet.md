@@ -407,12 +407,12 @@ saveenv`
 2. compile it with command: `gcc hello_param.c`
 
 ## How to add a hello module to kernel
-1. go through steps [to get kernel and compile it](#compile-the-kernel-with-ubuntu-toolchain)
-2. thenapply this patch to it:
+1. go through steps above [to get kernel 4.14 for beaglebone and compile it](#compile-the-kernel-with-ubuntu-toolchain)
+2. then apply this patch to it:
   `0001-Add-test-module-hello-and-new-hello.patch`
-3. use `menuconfig`, go to `device driver` option and select new modules added.
+3. use `menuconfig`, go to `device driver` option and add new modules as modules not built-in.
 4. then compile kenrel and modules again and install them on board
-
+5. you can you use them with the command `modprobe <module-name>` 
 
 
 > Written with H.Assaran
