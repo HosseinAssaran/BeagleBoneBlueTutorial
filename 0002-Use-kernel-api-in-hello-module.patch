@@ -1,0 +1,109 @@
+From 40232a43d57aed77bd6be45d583c7af26a721312 Mon Sep 17 00:00:00 2001
+From: "Hossein.Assaran" <Hossein.Assaran@gmail.com>
+Date: Fri, 10 Jul 2020 11:02:29 +0430
+Subject: [PATCH] Use kernel api in hello module
+
+---
+ drivers/test-module/hello.c | 67 ++++++++++++++++++++++++++++++++-----
+ 1 file changed, 58 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/test-module/hello.c b/drivers/test-module/hello.c
+index d18d3fc52..64918bf03 100644
+--- a/drivers/test-module/hello.c
++++ b/drivers/test-module/hello.c
+@@ -2,34 +2,83 @@
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/string.h>
+ 
+ static char *string = "Hello world";
+ module_param(string,charp,S_IRUSR | S_IWUSR);
+ MODULE_PARM_DESC(string, "The string to be printed");
+ 
++static int count = 5;
++module_param(count, int, S_IRUSR | S_IWUSR);
++MODULE_PARM_DESC(count, "The number of objects");
++
++static char **string_list = 0;
++
+ int add(int a, int b)
+ {
+ 	return a+b;
+ }
+ EXPORT_SYMBOL(add);
+ 
++typedef struct my_dev {
++	 char *name;
++	 int id;
++}my_dev;
++
++static int count_backup;
+ static int __init hello_init(void)
+ {
+-#ifdef CONFIG_HELLO_COUNT
+-	int count = CONFIG_HELLO_COUNT;
+-#else
+-	int count = 5;
+-#endif
++	int i = 0;
++	int ret_code = 0;
+ 	if (count <0)
+ 		count = 0;
+-	while(count--)
+-		pr_alert("%s\n",string);
+-	pr_alert("2+5 is %d\n", add(2,5));
+-	return 0;
++	if (count > 9999)
++		count = 9999;
++	string_list = kcalloc(count, sizeof(char*), GFP_KERNEL);
++	if (!string_list){
++		 pr_alert("No memo!\n");
++		 ret_code = -ENOMEM;
++		 goto exit_point1;
++	}
++	char *name = kmalloc(sizeof("device_0000"), GFP_KERNEL);
++	count_backup = count;
++	if(!name){
++		pr_alert("No memory!\n");
++		ret_code = -ENOMEM;
++		goto exit_point;
++	}
++	for (i = 0; i < count ; i++) {
++		sprintf(name, "device_%04d", i);
++		string_list[i] = kstrdup(name, GFP_KERNEL);
++        pr_alert("Adding new device: %s\n", string_list[i]);
++		if (!string_list[i]){
++			 pr_alert("No Memory for %d-th object\n", i);
++			ret_code = -ENOMEM;
++			goto exit_point;
++		}
++	}
++
++exit_point:
++	kfree (name);
++	if(ret_code && i){
++		do{
++			kfree(string_list[--i]);
++		}while(i);
++		kfree(string_list);
++	}
++exit_point1:
++	return ret_code;
+ }
+ 
+ static void __exit hello_exit(void)
+ {
++	int i;
++	for (i = 0; i < count_backup; i++){
++		pr_alert("device name %d = %s\n", i, string_list[i]);
++		kfree(string_list[i]);
++	}
++	kfree(string_list);
+ 	pr_alert("Good bye the string was %s\n", string);
+ }
+ 
+-- 
+2.17.1
+

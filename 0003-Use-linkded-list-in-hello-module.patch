@@ -1,0 +1,125 @@
+From c2d433810a89fe6606b605803a16f90de6bbe70d Mon Sep 17 00:00:00 2001
+From: "Hossein.Assaran" <Hossein.Assaran@gmail.com>
+Date: Fri, 10 Jul 2020 12:01:58 +0430
+Subject: [PATCH] Use linkded list in hello module
+
+---
+ drivers/test-module/hello.c | 54 ++++++++++++++++++++++---------------
+ 1 file changed, 32 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/test-module/hello.c b/drivers/test-module/hello.c
+index 64918bf03..68363245f 100644
+--- a/drivers/test-module/hello.c
++++ b/drivers/test-module/hello.c
+@@ -4,6 +4,7 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
++#include <linux/list.h>
+ 
+ static char *string = "Hello world";
+ module_param(string,charp,S_IRUSR | S_IWUSR);
+@@ -13,7 +14,7 @@ static int count = 5;
+ module_param(count, int, S_IRUSR | S_IWUSR);
+ MODULE_PARM_DESC(count, "The number of objects");
+ 
+-static char **string_list = 0;
++static LIST_HEAD(device_list);
+ 
+ int add(int a, int b)
+ {
+@@ -24,6 +25,7 @@ EXPORT_SYMBOL(add);
+ typedef struct my_dev {
+ 	 char *name;
+ 	 int id;
++	 struct list_head node;
+ }my_dev;
+ 
+ static int count_backup;
+@@ -31,54 +33,62 @@ static int __init hello_init(void)
+ {
+ 	int i = 0;
+ 	int ret_code = 0;
++	struct my_dev *dev = 0;
++	struct list_head *cursor = 0, *tmp = 0;
++	char *name = 0;
+ 	if (count <0)
+ 		count = 0;
+ 	if (count > 9999)
+ 		count = 9999;
+-	string_list = kcalloc(count, sizeof(char*), GFP_KERNEL);
+-	if (!string_list){
+-		 pr_alert("No memo!\n");
+-		 ret_code = -ENOMEM;
+-		 goto exit_point1;
+-	}
+-	char *name = kmalloc(sizeof("device_0000"), GFP_KERNEL);
+-	count_backup = count;
++	name = kmalloc(sizeof("device_0000"), GFP_KERNEL);
+ 	if(!name){
+ 		pr_alert("No memory!\n");
+ 		ret_code = -ENOMEM;
+ 		goto exit_point;
+ 	}
+ 	for (i = 0; i < count ; i++) {
++		dev = kzalloc(sizeof(struct my_dev), GFP_KERNEL);
+ 		sprintf(name, "device_%04d", i);
+-		string_list[i] = kstrdup(name, GFP_KERNEL);
+-        pr_alert("Adding new device: %s\n", string_list[i]);
+-		if (!string_list[i]){
++        pr_alert("Adding new device: %s\n", name);
++		dev->id = i;
++		dev->name = kstrdup(name, GFP_KERNEL);
++		if (!dev->name){
+ 			 pr_alert("No Memory for %d-th object\n", i);
+ 			ret_code = -ENOMEM;
+ 			goto exit_point;
+ 		}
++		list_add_tail(&dev->node, &device_list);
+ 	}
+ 
+ exit_point:
+ 	kfree (name);
+ 	if(ret_code && i){
+-		do{
+-			kfree(string_list[--i]);
+-		}while(i);
+-		kfree(string_list);
++		list_for_each_safe(cursor, tmp, &device_list){
++			dev = list_entry(cursor, struct my_dev, node);
++			list_del(&dev->node);
++			kfree(dev->name);
++			kfree(dev);
++		}
+ 	}
+-exit_point1:
+ 	return ret_code;
+ }
+ 
+ static void __exit hello_exit(void)
+ {
+-	int i;
+-	for (i = 0; i < count_backup; i++){
+-		pr_alert("device name %d = %s\n", i, string_list[i]);
+-		kfree(string_list[i]);
++	struct list_head *cursor, *tmp;
++	struct my_dev *dev;
++	list_for_each_safe(cursor, tmp, &device_list){
++		dev = list_entry(cursor, struct my_dev, node);
++		pr_alert("device id=%d, name= %s\n", dev->id, dev->name);
++		list_del(&dev->node);
++		kfree(dev->name);
++		kfree(dev);
+ 	}
+-	kfree(string_list);
++	if(!list_empty(&device_list))
++		pr_alert("Why am I here!\n");
++	else
++		pr_alert("The list is empty\n");
++
+ 	pr_alert("Good bye the string was %s\n", string);
+ }
+ 
+-- 
+2.17.1
+

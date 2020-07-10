@@ -413,6 +413,7 @@ saveenv`
 3. use `menuconfig`, go to `device driver` option and add new modules as modules not built-in.
 4. then compile kenrel and modules again and install them on board
 5. you can you use them with the command `modprobe <module-name>` 
+6. you can also apply `0002-Use-kernel-api-in-hello-module.patch` to source and then `0003-Use-linkded-list-in-hello-module.patch` and test updates.
 
 
 > Written with H.Assaran
