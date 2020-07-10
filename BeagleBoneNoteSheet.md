@@ -404,7 +404,7 @@ saveenv`
 
 ## How to build a out of tree module
 1. download this example:https://github.com/bootlin/training-materials/tree/master/code/hello-param
-2. compile it with command: `gcc hello_param.c`
+2. compile it with simple command: `make`
 
 ## How to add a hello module to kernel
 1. go through steps above [to get kernel 4.14 for beaglebone and compile it](#compile-the-kernel-with-ubuntu-toolchain)
