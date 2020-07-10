@@ -1,4 +1,4 @@
-From 40373195ddb5724534a80a6199937a7536224f44 Mon Sep 17 00:00:00 2001
+From e8181de151e8d0aa1eb9e3eb467b0a5c8ebbcdb6 Mon Sep 17 00:00:00 2001
 From: "Hossein.Assaran" <Hossein.Assaran@gmail.com>
 Date: Thu, 9 Jul 2020 12:01:36 +0430
 Subject: [PATCH] Add test module hello and new hello
@@ -7,10 +7,10 @@ Subject: [PATCH] Add test module hello and new hello
  drivers/Kconfig                 |  2 ++
  drivers/Makefile                |  2 +-
  drivers/test-module/Kconfig     | 16 +++++++++++++
- drivers/test-module/Makefile    |  7 ++++++
+ drivers/test-module/Makefile    | 11 +++++++++
  drivers/test-module/hello.c     | 40 +++++++++++++++++++++++++++++++++
  drivers/test-module/new_hello.c | 22 ++++++++++++++++++
- 6 files changed, 88 insertions(+), 1 deletion(-)
+ 6 files changed, 92 insertions(+), 1 deletion(-)
  create mode 100644 drivers/test-module/Kconfig
  create mode 100644 drivers/test-module/Makefile
  create mode 100644 drivers/test-module/hello.c
@@ -66,17 +66,21 @@ index 000000000..da116f97f
 +		This is another simple module
 diff --git a/drivers/test-module/Makefile b/drivers/test-module/Makefile
 new file mode 100644
-index 000000000..24b6e89c9
+index 000000000..97bc0b103
 --- /dev/null
 +++ b/drivers/test-module/Makefile
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,11 @@
 +ifneq ($(KERNELRELEASE),)
-+obj-$(CONFIG_HELLO_MODULE) += hello.o
-+obj-$(CONFIG_NEW_HELLO_MODULE) += new_hello.o
++	obj-$(CONFIG_HELLO_MODULE) += hello.o
++	obj-$(CONFIG_NEW_HELLO_MODULE) += new_hello.o
 +else
++	KDIR := $$PWD/../.. 
 +all:
-+	$(MAKE) -C /home/smart/Projects/LinuxKernel.org/linux/ M=$$PWD
++	$(MAKE) -C $(KDIR) M=$$PWD
 +endif
++
++clean:
++	rm *.ko *.o *.order *.mod.c *.builtin *.symvers -f
 diff --git a/drivers/test-module/hello.c b/drivers/test-module/hello.c
 new file mode 100644
 index 000000000..d18d3fc52
