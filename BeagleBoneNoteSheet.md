@@ -90,7 +90,7 @@ RAMDISK or INITRAMFS| 0x88080000
 5. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig`
 6. `make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CONFIG_PREFIX=<install_path> install`
 
-## Compile the kernel With Ubuntu toolchain:
+## <a name="kerne-compile"></a>Compile the kernel With Ubuntu toolchain:
 1. `sudo apt install lzop`
 2. `wget https://github.com/beagleboard/linux/archive/4.14.zip -o linux-4.14.zip`
 3. `unzip linux-4.14.zip`
@@ -400,8 +400,18 @@ For that I build a new config with this config modified that you can apply to u-
 setenv mmcdev 1
 saveenv`
 ```
-6. Remove sd card, reset the board and enjoy booting over eMMC 
+6. Remove sd card, reset the board and enjoy booting over eMMC
 
+## How to build a out of tree module
+1. download this example:https://github.com/bootlin/training-materials/tree/master/code/hello-param
+2. compile it with command: `gcc hello_param.c`
+
+## How to add a hello module to kernel
+1. go through steps [to get kernel and compile it](#kerne-compile)
+2. thenapply this patch to it:
+  `0001-Add-test-module-hello-and-new-hello.patch`
+3. use `menuconfig`, go to `device driver` option and select new modules added.
+4. then compile kenrel and modules again and install them on board
 
 
 

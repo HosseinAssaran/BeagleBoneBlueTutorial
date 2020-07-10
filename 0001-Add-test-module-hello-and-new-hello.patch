@@ -1,0 +1,156 @@
+From 40373195ddb5724534a80a6199937a7536224f44 Mon Sep 17 00:00:00 2001
+From: "Hossein.Assaran" <Hossein.Assaran@gmail.com>
+Date: Thu, 9 Jul 2020 12:01:36 +0430
+Subject: [PATCH] Add test module hello and new hello
+
+---
+ drivers/Kconfig                 |  2 ++
+ drivers/Makefile                |  2 +-
+ drivers/test-module/Kconfig     | 16 +++++++++++++
+ drivers/test-module/Makefile    |  7 ++++++
+ drivers/test-module/hello.c     | 40 +++++++++++++++++++++++++++++++++
+ drivers/test-module/new_hello.c | 22 ++++++++++++++++++
+ 6 files changed, 88 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/test-module/Kconfig
+ create mode 100644 drivers/test-module/Makefile
+ create mode 100644 drivers/test-module/hello.c
+ create mode 100644 drivers/test-module/new_hello.c
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 1d7af3c2f..98561e7d2 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ menu "Device Drivers"
+ 
++source "drivers/test-module/Kconfig"
++
+ source "drivers/amba/Kconfig"
+ 
+ source "drivers/base/Kconfig"
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 5f5ccdbad..611e7aa13 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -5,7 +5,7 @@
+ # 15 Sep 2000, Christoph Hellwig <hch@infradead.org>
+ # Rewritten to use lists instead of if-statements.
+ #
+-
++obj-y += test-module/
+ obj-y				+= irqchip/
+ obj-y				+= bus/
+ 
+diff --git a/drivers/test-module/Kconfig b/drivers/test-module/Kconfig
+new file mode 100644
+index 000000000..da116f97f
+--- /dev/null
++++ b/drivers/test-module/Kconfig
+@@ -0,0 +1,16 @@
++config HELLO_MODULE
++	tristate "Compile the hello module"
++	help
++		This is hello world module.
++
++config HELLO_COUNT
++	int "How many hello?"
++	depends on HELLO_MODULE
++	help
++		Hello count help!
++
++config NEW_HELLO_MODULE
++	tristate "The new hello module"
++	depends on HELLO_MODULE
++	help 
++		This is another simple module
+diff --git a/drivers/test-module/Makefile b/drivers/test-module/Makefile
+new file mode 100644
+index 000000000..24b6e89c9
+--- /dev/null
++++ b/drivers/test-module/Makefile
+@@ -0,0 +1,7 @@
++ifneq ($(KERNELRELEASE),)
++obj-$(CONFIG_HELLO_MODULE) += hello.o
++obj-$(CONFIG_NEW_HELLO_MODULE) += new_hello.o
++else
++all:
++	$(MAKE) -C /home/smart/Projects/LinuxKernel.org/linux/ M=$$PWD
++endif
+diff --git a/drivers/test-module/hello.c b/drivers/test-module/hello.c
+new file mode 100644
+index 000000000..d18d3fc52
+--- /dev/null
++++ b/drivers/test-module/hello.c
+@@ -0,0 +1,40 @@
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++
++static char *string = "Hello world";
++module_param(string,charp,S_IRUSR | S_IWUSR);
++MODULE_PARM_DESC(string, "The string to be printed");
++
++int add(int a, int b)
++{
++	return a+b;
++}
++EXPORT_SYMBOL(add);
++
++static int __init hello_init(void)
++{
++#ifdef CONFIG_HELLO_COUNT
++	int count = CONFIG_HELLO_COUNT;
++#else
++	int count = 5;
++#endif
++	if (count <0)
++		count = 0;
++	while(count--)
++		pr_alert("%s\n",string);
++	pr_alert("2+5 is %d\n", add(2,5));
++	return 0;
++}
++
++static void __exit hello_exit(void)
++{
++	pr_alert("Good bye the string was %s\n", string);
++}
++
++module_init(hello_init);
++module_exit(hello_exit);
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Crouse");
++MODULE_DESCRIPTION("A simple module for test");
+diff --git a/drivers/test-module/new_hello.c b/drivers/test-module/new_hello.c
+new file mode 100644
+index 000000000..c85c908ca
+--- /dev/null
++++ b/drivers/test-module/new_hello.c
+@@ -0,0 +1,22 @@
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++
++extern  int add(int a, int b);
++static int __init hello_init(void)
++{
++	pr_alert("New Hello world!\n");
++	pr_alert("5+6 is %d\n", add(5,6));
++	return 0;
++}
++
++static void __exit hello_exit(void)
++{
++	pr_alert("New Good bye\n");
++}
++
++module_init(hello_init);
++module_exit(hello_exit);
++MODULE_LICENSE("propritary");
++MODULE_AUTHOR("Crouse");
++MODULE_DESCRIPTION("A simple module for test");
+-- 
+2.17.1
+
