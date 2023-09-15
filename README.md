@@ -9,5 +9,5 @@ As far as this commands are just for tutorial I recommand you to read them caref
 If you have any question I am open in my email:
 Hossein.assaran@gmail.com
 
-I documented every things I learned in [BeagleBoneNoteSheet.md]
+I documented every things I learned in [BeagleBoneNoteSheet.md](BeagleBoneNoteSheet.md)
 
