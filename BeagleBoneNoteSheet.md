@@ -415,6 +415,17 @@ saveenv`
 5. you can you use them with the command `modprobe <module-name>` 
 6. you can also apply `0002-Use-kernel-api-in-hello-module.patch` to source and then `0003-Use-linkded-list-in-hello-module.patch` and test updates.
 
-
+## How to build yocto linux for beaglebone blue
+1. Clone poky project with command : `git clone -b kirkstone https://git.yoctoproject.org/git/poky --depth=1`
+2. Run `source poky/oe-init-build-env`
+3. Open `conf/local.conf` with your favourite editor and do below modifications:
+   - Uncomment **MACHINE ?= "beaglebone-yocto"**
+   - Add `KERNEL_DEVICETREE:append = " am335x-boneblue.dtb` to tell to bitbake to build the beaglebone blue device tree for you
+   - Add `PREFERRED_VERSION_linux-yocto = "5.10%"` to tell to bitbake to build the version 5.10 of kernel. **at now it doesn't work with 5.15**
+4. Run `bitbake core-image-minimal` to build linux image
+5. Run the below command to copy the image to your sd card:
+```
+sudo bmaptool copy --bmap tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic.bmap tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic /dev/mmcblk0
+```
 > Written with H.Assaran
 
