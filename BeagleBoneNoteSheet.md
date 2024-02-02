@@ -431,6 +431,9 @@ sudo bmaptool copy --bmap tmp/deploy/images/beaglebone-yocto/core-image-minimal-
 1. Do **Linux kernel configuration** mentioned in the document [https://bootlin.com/doc/training/embedded-linux-bbb/embedded-linux-bbb-labs.pdf] and compile
 2. Do what is said in part **Lab2: Advanced Yocto configuration** in [https://bootlin.com/doc/training/yocto/yocto-labs.pdf]
 
+**Another way:** you can use the meta-custom layer [https://github.com/HosseinAssaran/meta-custom-yoctotraining.git](here) and everything has been done for you. You just need to define beaglebone-yocto as MACHINE in your **local.conf** and you get the image working with /nfs directory on your host machine.
+
+
 ## How to set yocto linux to run from tftp with nfs root
 1. Do what ever you did above except modifying **extlinux.conf**
 2. Add **uEnv.txt** to boot partition of your sd card and fill it with below contents:
