@@ -427,5 +427,23 @@ saveenv`
 ```
 sudo bmaptool copy --bmap tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic.bmap tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic /dev/mmcblk0
 ```
+## How to set yocto linux to run from nfs server
+1. Do **Linux kernel configuration** mentioned in the document [https://bootlin.com/doc/training/embedded-linux-bbb/embedded-linux-bbb-labs.pdf] and compile
+2. Do what is said in part **Lab2: Advanced Yocto configuration** in [https://bootlin.com/doc/training/yocto/yocto-labs.pdf]
+
+## How to set yocto linux to run from tftp with nfs root
+1. Do what ever you did above except modifying **extlinux.conf**
+2. Add **uEnv.txt** to boot partition of your sd card and fill it with below contents:
+   ```
+console=ttyO0,115200n8
+ipaddr=192.168.0.100
+serverip=192.168.0.1
+usbnet_devaddr=f8:dc:7a:00:00:02
+usbnet_hostaddr=f8:dc:7a:00:00:01
+netargs=setenv bootargs console=${console} root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${serverip}:/nfs,nfsvers=3,tcp rootwait rw
+bootcmd=tftp 0x81000000 zImage; tftp 0x82000000 am335x-boneblue.dtb; bootz 0x81000000 - 0x82000000
+uenvcmd=run netargs; run bootcmd
+```
+
 > Written with H.Assaran
 
