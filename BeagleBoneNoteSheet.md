@@ -427,7 +427,7 @@ saveenv`
 ```
 sudo bmaptool copy --bmap tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic.bmap tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic /dev/mmcblk0
 ```
-## How to set yocto linux to run from nfs server
+## How to set yocto linux to use nfs server
 1. Do **Linux kernel configuration** mentioned in the document [https://bootlin.com/doc/training/embedded-linux-bbb/embedded-linux-bbb-labs.pdf] and compile
 2. Do what is said in part **Lab2: Advanced Yocto configuration** in [https://bootlin.com/doc/training/yocto/yocto-labs.pdf]
 
